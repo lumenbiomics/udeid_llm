@@ -3,32 +3,15 @@ import os
 import time
 import sys, glob
 
-# I2B2 dataset
-
-# TODO: Fix import
-from gpt_deid.i2b2 import I2B2Parser
+from vllm import LLM, SamplingParams
 
 files = sorted(glob.glob("./n2c2/*"))
 texts = []
 for filename in files:
-    i2b2_doc = I2B2Parser.from_file(filename)
-    text = i2b2_doc.text
+    text = open(filename).read()
     texts.append(text)
 len(texts)
 
-# CONLL 2003
-# TODO: Load from file directly
-"""
-texts = []
-for document in documents:
-    text = []
-    for sentence in document:
-        # print(sentence)
-        text += sentence["tokens"]
-    text = " ".join(text)
-    texts.append(text)
-len(texts)
-"""
 
 # Prompts
 
@@ -77,17 +60,13 @@ all_inputs = [
 ]
 
 # Model Loading
-from vllm import LLM, SamplingParams
+
 sampling_params = SamplingParams(temperature=0, max_tokens=500)
 
-llm = LLM(model="/data/karthik/models/Llama-2-13b-chat-hf", tensor_parallel_size=8)
-# llm = LLM(model="/data2/karthik/models/Mixtral-8x7B-Instruct-v0.1", tensor_parallel_size=8)
-# llm = LLM(model="/data2/karthik/models/Llama-2-70b-chat-hf", tensor_parallel_size=8, gpu_memory_utilization=0.8)
-
+llm = LLM(model="/data/models/Llama-2-13b-chat-hf", tensor_parallel_size=8)
 start = time.time()
 outputs_temp = llm.generate(all_inputs, sampling_params)
 end = time.time()
-
 print(end - start)
 
 import json
